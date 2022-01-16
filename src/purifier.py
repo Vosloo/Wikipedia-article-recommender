@@ -3,44 +3,45 @@ from typing import List, Union
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-# from sumy.nlp.tokenizers import Tokenizer
-# from sumy.parsers.plaintext import PlaintextParser
-# from sumy.summarizers.lsa import LsaSummarizer
+from db_model.DBConnector import DBConnector
 
-# GER_SM = "".join(["\u00E4", "\u00F6", "\u00FC", "\u00DF"])  # German small letters
-# GER_LG = "".join(["\u00C4", "\u00D6", "\u00DC", "\u1E9E"])  # German large letters
-
-# TOKENIZER_LANG = "german"
-# SUMMARIZE_SENTENCE_COUNT = 10
+from db_model.DBQuery import DBQuery
 
 # ---
 # Regex patterns
 # ---
 
 # Separate merged words (with dot if present)
-REGEX_SMALL_LARGE     = (rf"([a-z])(\.*)([A-Z])", r"\1\2 \3")
-REGEX_NUMBER_LARGE    = (r"([0-9])(\.*)([A-Z])", r"\1\2 \3")
+REGEX_SMALL_LARGE = (rf"([a-z])(\.*)([A-Z])", r"\1\2 \3")
+REGEX_NUMBER_LARGE = (r"([0-9])(\.*)([A-Z])", r"\1\2 \3")
 
 # Escape special characters
-REGEX_COMMA           = (",", ", ")
-REGEX_APOSTROPHE      = ("'", "`")
-REGEX_PERCENTAGE      = ("%", "%%")
-REGEX_ANGLE_BRACKETS  = (r"[<>]", " ")
-REGEX_DASHES          = (r"[‑–]", "-")
-REGEX_QUERY_BINDING   = (r"(:)([a-zA-Z0-9])", r"\1 \2") # Removes potential parameter bindings in SQLAlchemy
-REGEX_SPECIAL_SPACE   = (r"[\t\xa0]", " ")
+REGEX_COMMA = (",", ", ")
+REGEX_APOSTROPHE = ("'", "`")
+REGEX_PERCENTAGE = ("%", "%%")
+REGEX_ANGLE_BRACKETS = (r"[<>]", " ")
+REGEX_DASHES = (r"[‑–]", "-")
+REGEX_QUERY_BINDING = (
+    r"(:)([a-zA-Z0-9])",
+    r"\1 \2",
+)  # Removes potential parameter bindings in SQLAlchemy
+REGEX_SPECIAL_SPACE = (r"[\t\xa0]", " ")
 REGEX_SPECIAL_NEWLINE = (r"[\x03\r]", "\n")
+
+# Wikipedia specifics
+REGEX_WIKI_STYLING = (r"{.+?}", "")
+REGEX_WIKI_BRACKETS = (r"}+", "")
+REGEX_WIKI_ANNONATIONS = (r"\[\d+?\]", "")
 
 # Multiple new lines and whitespaces
 REGEX_SPACES_NEWLINES = (r"\s*\n\s*", "\n")
 REGEX_MULTIP_NEWLINES = (r"\n{3,}", "\n\n")
-REGEX_MULTIP_SPACES   = (r"( ){2,}", " ")
+REGEX_MULTIP_SPACES = (r"( ){2,}", " ")
 
 
 class Purifier:
     def __init__(self, text: str, text_limit=5000) -> None:
         self.soup = BeautifulSoup(text, "html.parser")
-        # self.lsa_summarizer = LsaSummarizer()
 
         self.raw_text = self.soup.get_text()
         self.text_limit = text_limit
@@ -77,6 +78,16 @@ class Purifier:
 
         return meta_desc
 
+    def process_paragraphs(self) -> str:
+        """
+            Returns list of all paragraphs
+            To find tags:
+                <p>...</p>
+            Returns:
+                str: list with all found matching Tags
+        """
+        return "".join([tag.text for tag in self.soup.find_all("p")])
+
     def purify_text(self, text):
         """
         Removes whitespaces, special (and problematic characters) and seperates words from the text
@@ -99,20 +110,13 @@ class Purifier:
         text = re.sub(*REGEX_SPACES_NEWLINES, text)
         text = re.sub(*REGEX_MULTIP_NEWLINES, text)
         text = re.sub(*REGEX_MULTIP_SPACES, text)
+        text = re.sub(*REGEX_WIKI_STYLING, text)
+        text = re.sub(*REGEX_WIKI_BRACKETS, text)
+        text = re.sub(*REGEX_WIKI_ANNONATIONS, text)
 
         # text = self._cut_above_limit(text)
 
         return text.strip()
-
-    # def summarize_text(self, text: str) -> str:
-    #     parser = PlaintextParser.from_string(text, Tokenizer(TOKENIZER_LANG))
-
-    #     summarized = self.lsa_summarizer(
-    #         parser.document, sentences_count=SUMMARIZE_SENTENCE_COUNT
-    #     )
-    #     summarized = "\n".join([str(sent) for sent in summarized])
-
-    #     return summarized
 
     def _cut_above_limit(self, text: str):
         """Cuts the text to the text_limit upper bound if it's too long"""
@@ -146,3 +150,8 @@ class Purifier:
             return results
 
         return list(self.soup.find_all(tag))
+
+if __name__ == "__main__":
+    db_query = DBQuery(DBConnector())
+    wikipedia = db_query.get_all_documents()
+    print(wikipedia)
