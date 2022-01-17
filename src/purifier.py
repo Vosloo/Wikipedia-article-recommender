@@ -17,14 +17,8 @@ REGEX_NUMBER_LARGE = (r"([0-9])(\.*)([A-Z])", r"\1\2 \3")
 
 # Escape special characters
 REGEX_COMMA = (",", ", ")
-REGEX_APOSTROPHE = ("'", "`")
-REGEX_PERCENTAGE = ("%", "%%")
 REGEX_ANGLE_BRACKETS = (r"[<>]", " ")
 REGEX_DASHES = (r"[‑–]", "-")
-REGEX_QUERY_BINDING = (
-    r"(:)([a-zA-Z0-9])",
-    r"\1 \2",
-)  # Removes potential parameter bindings in SQLAlchemy
 REGEX_SPECIAL_SPACE = (r"[\t\xa0]", " ")
 REGEX_SPECIAL_NEWLINE = (r"[\x03\r]", "\n")
 
@@ -38,6 +32,8 @@ REGEX_SPACES_NEWLINES = (r"\s*\n\s*", "\n")
 REGEX_MULTIP_NEWLINES = (r"\n{3,}", "\n\n")
 REGEX_MULTIP_SPACES = (r"( ){2,}", " ")
 
+# After lemma cleaning
+REGEX_SPECIAL_CHARS = (r"[;`']", "")
 
 class Purifier:
     def __init__(self, text: str, text_limit=5000) -> None:
@@ -121,6 +117,12 @@ class Purifier:
 
         return list(self.soup.find_all(tag))
 
+    def purify_after_lemma(self, text):
+        text = re.sub(*REGEX_SPECIAL_CHARS, text)
+        text = re.sub(*REGEX_MULTIP_SPACES, text)
+
+        return text.strip()
+
     def purify_text(self, text):
         """
         Removes whitespaces, special (and problematic characters) and seperates words from the text
@@ -131,11 +133,11 @@ class Purifier:
 
         # Escape special characters
         text = re.sub(*REGEX_COMMA, text)
-        text = re.sub(*REGEX_APOSTROPHE, text)
-        text = re.sub(*REGEX_PERCENTAGE, text)
+        # text = re.sub(*REGEX_APOSTROPHE, text)
+        # text = re.sub(*REGEX_PERCENTAGE, text)
         text = re.sub(*REGEX_ANGLE_BRACKETS, text)
         text = re.sub(*REGEX_DASHES, text)
-        text = re.sub(*REGEX_QUERY_BINDING, text)
+        # text = re.sub(*REGEX_QUERY_BINDING, text)
         text = re.sub(*REGEX_SPECIAL_SPACE, text)
         text = re.sub(*REGEX_SPECIAL_NEWLINE, text)
 
@@ -147,11 +149,4 @@ class Purifier:
         text = re.sub(*REGEX_WIKI_BRACKETS, text)
         text = re.sub(*REGEX_WIKI_ANNONATIONS, text)
 
-        # text = self._cut_above_limit(text)
-
         return text.strip()
-
-# if __name__ == "__main__":
-#     db_query = DBQuery(DBConnector())
-#     wikipedia = db_query.get_all_documents()
-#     print(wikipedia)

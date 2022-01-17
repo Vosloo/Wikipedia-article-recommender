@@ -12,3 +12,4 @@ ROOT = Path(__file__).resolve().parents[1]
 
 DATA_PATH = ROOT.joinpath('data')
 WIKI_RESPONSES_PKL = DATA_PATH.joinpath('wiki_responses.pkl')
+WIKI_TEXT_PARQUET = DATA_PATH.joinpath('wiki_texts.parquet')
