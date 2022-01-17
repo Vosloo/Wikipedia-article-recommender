@@ -5,6 +5,9 @@ BATCH_SIZE = 50
 NO_BATCHES = 50
 TIMEOUT = 5
 
+PD_URL = 'url'
+PD_TEXT = 'text'
+
 ROOT = Path(__file__).resolve().parents[1]
 
 DATA_PATH = ROOT.joinpath('data')

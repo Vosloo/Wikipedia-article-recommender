@@ -3,9 +3,9 @@ from typing import List, Union
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from db_model.DBConnector import DBConnector
 
-from db_model.DBQuery import DBQuery
+# from db_model.DBConnector import DBConnector
+# from db_model.DBQuery import DBQuery
 
 # ---
 # Regex patterns
@@ -88,36 +88,6 @@ class Purifier:
         """
         return "".join([tag.text for tag in self.soup.find_all("p")])
 
-    def purify_text(self, text):
-        """
-        Removes whitespaces, special (and problematic characters) and seperates words from the text
-        """
-        # Seperate merged words
-        text = re.sub(*REGEX_SMALL_LARGE, text)
-        text = re.sub(*REGEX_NUMBER_LARGE, text)
-
-        # Escape special characters
-        text = re.sub(*REGEX_COMMA, text)
-        text = re.sub(*REGEX_APOSTROPHE, text)
-        text = re.sub(*REGEX_PERCENTAGE, text)
-        text = re.sub(*REGEX_ANGLE_BRACKETS, text)
-        text = re.sub(*REGEX_DASHES, text)
-        text = re.sub(*REGEX_QUERY_BINDING, text)
-        text = re.sub(*REGEX_SPECIAL_SPACE, text)
-        text = re.sub(*REGEX_SPECIAL_NEWLINE, text)
-
-        # Multiple new lines and whitespaces
-        text = re.sub(*REGEX_SPACES_NEWLINES, text)
-        text = re.sub(*REGEX_MULTIP_NEWLINES, text)
-        text = re.sub(*REGEX_MULTIP_SPACES, text)
-        text = re.sub(*REGEX_WIKI_STYLING, text)
-        text = re.sub(*REGEX_WIKI_BRACKETS, text)
-        text = re.sub(*REGEX_WIKI_ANNONATIONS, text)
-
-        # text = self._cut_above_limit(text)
-
-        return text.strip()
-
     def _cut_above_limit(self, text: str):
         """Cuts the text to the text_limit upper bound if it's too long"""
         if len(text) > self.text_limit:
@@ -151,7 +121,37 @@ class Purifier:
 
         return list(self.soup.find_all(tag))
 
-if __name__ == "__main__":
-    db_query = DBQuery(DBConnector())
-    wikipedia = db_query.get_all_documents()
-    print(wikipedia)
+    def purify_text(self, text):
+        """
+        Removes whitespaces, special (and problematic characters) and seperates words from the text
+        """
+        # Seperate merged words
+        text = re.sub(*REGEX_SMALL_LARGE, text)
+        text = re.sub(*REGEX_NUMBER_LARGE, text)
+
+        # Escape special characters
+        text = re.sub(*REGEX_COMMA, text)
+        text = re.sub(*REGEX_APOSTROPHE, text)
+        text = re.sub(*REGEX_PERCENTAGE, text)
+        text = re.sub(*REGEX_ANGLE_BRACKETS, text)
+        text = re.sub(*REGEX_DASHES, text)
+        text = re.sub(*REGEX_QUERY_BINDING, text)
+        text = re.sub(*REGEX_SPECIAL_SPACE, text)
+        text = re.sub(*REGEX_SPECIAL_NEWLINE, text)
+
+        # Multiple new lines and whitespaces
+        text = re.sub(*REGEX_SPACES_NEWLINES, text)
+        text = re.sub(*REGEX_MULTIP_NEWLINES, text)
+        text = re.sub(*REGEX_MULTIP_SPACES, text)
+        text = re.sub(*REGEX_WIKI_STYLING, text)
+        text = re.sub(*REGEX_WIKI_BRACKETS, text)
+        text = re.sub(*REGEX_WIKI_ANNONATIONS, text)
+
+        # text = self._cut_above_limit(text)
+
+        return text.strip()
+
+# if __name__ == "__main__":
+#     db_query = DBQuery(DBConnector())
+#     wikipedia = db_query.get_all_documents()
+#     print(wikipedia)
