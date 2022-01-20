@@ -3,7 +3,7 @@ from pathlib import Path
 RAND_WIKI = "https://en.wikipedia.org/wiki/Special:Random"
 WIKI_LINK = "https://en.wikipedia.org/wiki/"
 BATCH_SIZE = 50
-NO_BATCHES = 1
+NO_BATCHES = 20
 TIMEOUT = 1
 
 PD_URL = "url"
@@ -12,6 +12,7 @@ PD_TITLE = "title"
 HEADERS_SECTION = "headers"
 
 COMPRESS_ALG = "brotli"
+NLTK_MODEL = "en_core_web_md"
 
 ROOT = Path(__file__).resolve().parents[1]
 
