@@ -34,9 +34,9 @@ class Scraper:
                 data=[r.url, r.url.split("/")[-1], r.text],
             )
 
-    def scrape_batches(self) -> None:
+    def scrape_batches(self) -> pd.DataFrame:
         """
-        Scrapes random wikipedia articles in batches and saves them to parquet file 
+        Scrapes random wikipedia articles in batches and saves them to parquet file
         containing pandas DataFrame object with url, title and text.
         """
         documents = pd.DataFrame(columns=[cfg.PD_URL, cfg.PD_TITLE, cfg.PD_TEXT])
@@ -55,6 +55,9 @@ class Scraper:
             sleep(self.timeout)
 
         documents.to_parquet(cfg.WIKI_RESPONSES_PARQUET, compression=cfg.COMPRESS_ALG)
+        print(f"Wikipedia responses saved to {str(cfg.WIKI_RESPONSES_PARQUET)}")
+
+        return documents
 
     def _get_random_header(self):
         return choice(self.headers)

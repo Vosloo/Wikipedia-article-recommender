@@ -1,4 +1,5 @@
 import re
+from bs4 import BeautifulSoup
 
 # ---
 # Regex patterns
@@ -30,21 +31,23 @@ REGEX_SPECIAL_CHARS = (r"[;`']", "")
 
 
 class Purifier:
-    def process_paragraphs(self) -> str:
+    def process_paragraphs(self, text) -> str:
         """
-            Returns list of all paragraphs
-            To find tags:
-                <p>...</p>
-            Returns:
-                str: list with all found matching Tags
+        Returns list of all paragraphs
+        To find tags:
+            <p>...</p>
+        Returns:
+            str: list with all found matching Tags
         """
-        return "".join([tag.text for tag in self.soup.find_all("p")])
+
+        soup = BeautifulSoup(text, "html.parser")
+        return "".join([tag.text for tag in soup.find_all("p")])
 
     def purify_after_lemma(self, text):
         text = re.sub(*REGEX_SPECIAL_CHARS, text)
         text = re.sub(*REGEX_MULTIP_SPACES, text)
 
-        return text.strip()
+        return "".join(text.strip())
 
     def purify_text(self, text: str):
         """
