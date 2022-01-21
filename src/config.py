@@ -27,5 +27,4 @@ HEADERS = DATA_PATH.joinpath("headers.json")
 
 WIKI_TEXT_PARQUET = DATA_PATH.joinpath("wiki_texts.parquet")
 WIKI_RESPONSES_PARQUET = DATA_PATH.joinpath("wiki_responses.parquet")
-WIKI_TFIDF_PARQUET = DATA_PATH.joinpath("wiki_tfidf.parquet")
 WIKI_RECOMMENDATIONS_CSV = DATA_PATH.joinpath("wiki_recommendations.csv")

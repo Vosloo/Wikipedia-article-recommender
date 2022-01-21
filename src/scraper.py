@@ -67,6 +67,7 @@ class Scraper:
             # Is already an url
             return text
 
+        text = "_".join(text.split(" "))
         return cfg.WIKI_LINK + text
 
     def _load_headers(self):
@@ -75,8 +76,9 @@ class Scraper:
 
 
 if __name__ == "__main__":
-    Scraper().scrape_batches()
+    # Scraper().scrape_batches()
     documents: pd.DataFrame = pd.read_parquet(cfg.WIKI_RESPONSES_PARQUET)
 
+    print(documents.shape)
     print(documents.memory_usage(deep=True))
     print(documents.head())

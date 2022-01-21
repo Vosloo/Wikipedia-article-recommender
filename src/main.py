@@ -1,5 +1,6 @@
 from math import ceil
 from pathlib import Path
+import argparse
 from argparse import ArgumentParser
 
 from controller import Controller
@@ -39,6 +40,13 @@ def create_parser() -> ArgumentParser:
         "-q",
         "--no-recommendations",
         type=int,
+        help="Number of articles recommended based on user article history (default 5)",
+    )
+    parser.add_argument(
+        "-q",
+        "--no-recommendations",
+        default=True, 
+        action=argparse.BooleanOptionalAction,
         help="Number of articles recommended based on user article history (default 5)",
     )
     parser.add_argument(
