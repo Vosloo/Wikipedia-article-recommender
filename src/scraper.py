@@ -25,13 +25,12 @@ class Scraper:
         Scrape given wikipedia article based on given url or title and return it as pandas DataFrame object.
         """
         url = self._convert_to_url(text)
-
         r = requests.get(url, headers=self._get_random_header())
 
         if r.status_code == 200:
             return pd.DataFrame(
                 columns=[cfg.PD_URL, cfg.PD_TITLE, cfg.PD_TEXT],
-                data=[r.url, r.url.split("/")[-1], r.text],
+                data=[[r.url, r.url.split("/")[-1], r.text]],
             )
 
     def scrape_batches(self) -> pd.DataFrame:
@@ -65,7 +64,7 @@ class Scraper:
     def _convert_to_url(self, text):
         """Checks if text is already an url, if not, it is assumed to be a title and is converted to url"""
         if re.search(r"https?|www\.", text):
-            # Is already url
+            # Is already an url
             return text
 
         return cfg.WIKI_LINK + text

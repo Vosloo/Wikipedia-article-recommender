@@ -4,25 +4,34 @@ from pathlib import Path
 import config as cfg
 from normalizer import Normalizer
 from purifier import Purifier
+from recommender import Recommender
 from scraper import Scraper
 
 import pandas as pd
 
 
 class Controller:
-    def __init__(self, input_path: Path, data_path: Path, responses_path: Path) -> None:
+    def __init__(
+        self,
+        input_path: Path,
+        data_path: Path,
+        responses_path: Path,
+    ) -> None:
         self.input_path = input_path
         self.data_path = data_path
         self.responses_path = responses_path
+        self.query_documents: Union[pd.DataFrame, None] = None
         self.documents: Union[pd.DataFrame, None] = None
 
         self.normalizer = Normalizer()
         self.purifier = Purifier()
         self.scraper = Scraper()
+        self.recommender = Recommender()
 
     def run(self):
         self._scrape()
         self._parse_data()
+        self._load_input()
         self._recommender()
 
     def _scrape(self) -> None:
@@ -60,7 +69,10 @@ class Controller:
 
     def _recommender(self) -> None:
         """Recommends articles based on given query"""
-        ...
+
+        print(
+            self.recommender.get_recommendations(self.documents, self.query_documents)
+        )
 
     def _load_parsed(self) -> None:
         """Loads pandas DataFrame object with parsed texts"""
@@ -76,3 +88,24 @@ class Controller:
     def _load_responses(self) -> None:
         """Loads pandas DataFrame object with scraped responses"""
         self.documents = pd.read_parquet(str(self.responses_path))
+
+    def _load_input(self) -> None:
+        """Loads user input data"""
+
+        with open(str(self.input_path), "r") as f:
+            input_text = f.readlines()
+
+        query_documents = pd.concat(
+            [self.scraper.scrape_article(text.rstrip("\n")) for text in input_text],
+            ignore_index=True,
+        )
+
+        query_documents[cfg.PD_TEXT] = query_documents[cfg.PD_TEXT].apply(
+            lambda x: self.purifier.purify_after_lemma(
+                self.normalizer.normalize(
+                    self.purifier.purify_text(self.purifier.process_paragraphs(x))
+                )
+            )
+        )
+
+        self.query_documents = query_documents

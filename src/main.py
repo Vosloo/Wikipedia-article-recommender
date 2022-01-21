@@ -36,6 +36,12 @@ def create_parser() -> ArgumentParser:
         help="Apache parquet file containing raw article documents",
     )
     parser.add_argument(
+        "-q",
+        "--no-recommendations",
+        type=int,
+        help="Number of articles recommended based on user article history (default 5)",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         choices=["silent", "info", "debug"],
@@ -54,9 +60,9 @@ if __name__ == "__main__":
     if not input_path.exists():
         raise FileNotFoundError("Input path invalid, file not found")
 
-    data_path = Path(args.load_data).resolve() if args.load_data is not None else None
+    data_path = Path(args.load_data).resolve() if args.load_data else None
     responses_path = (
-        Path(args.load_responses).resolve() if args.load_responses is not None else None
+        Path(args.load_responses).resolve() if args.load_responses else None
     )
 
     if args.no_articles:
@@ -65,6 +71,9 @@ if __name__ == "__main__":
         raise Exception(
             "Missing dataset configuration. Either pass --no-articles, --load-data or --load-response."
         )
+
+    if args.no_recommendations:
+        cfg.NO_RECOMMENDATIONS = args.no_recommendations
 
     controller = Controller(input_path, data_path, responses_path)
     controller.run()

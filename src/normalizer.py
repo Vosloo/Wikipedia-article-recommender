@@ -1,18 +1,9 @@
-from pathlib import Path
-from typing import Union
-
-import spacy
 import nltk
-import pandas as pd
-
+import spacy
 from nltk import word_tokenize
 
 import config as cfg
 
-from purifier import Purifier
-
-# pd.apply(df["text"], axis=1, func=normalizer.normalize)
-# pd.apply(df_query["text"], axis=1, func=normalizer.normalize)
 
 class Normalizer:
     def __init__(self) -> None:
@@ -28,15 +19,7 @@ class Normalizer:
 
         return " ".join(cleared)
 
-    # def save(self, path: Path):
-    #     if not path.parent.exists():
-    #         raise Exception("Normalizer save path doesn't exists")
-    #     if self.documents is None:
-    #         print("No documents to save")
-
-    #     self.documents.to_parquet(str(path), compress=cfg.COMPRESS_ALG)
-
     def _download_nltk_packages(self):
-        nltk.download("punkt")
-        nltk.download("stopwords")
-        nltk.download("wordnet")
+        nltk.download("punkt", quiet=True)
+        nltk.download("stopwords", quiet=True)
+        nltk.download("wordnet", quiet=True)
