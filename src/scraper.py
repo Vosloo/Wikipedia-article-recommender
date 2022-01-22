@@ -12,8 +12,8 @@ import config as cfg
 
 
 class Scraper:
-    def __init__(self) -> None:
-        self.no_articles = cfg.NO_ARTICLES
+    def __init__(self, to_scrape) -> None:
+        self.no_articles = to_scrape
         self.batch_size = cfg.BATCH_SIZE
         self.timeout = cfg.TIMEOUT  # seconds
         self.rand_url = cfg.RAND_WIKI
@@ -58,8 +58,8 @@ class Scraper:
                 if scrapped % cfg.BATCH_SIZE == 0:
                     sleep(self.timeout)
 
-        documents.to_parquet(cfg.WIKI_RESPONSES_PARQUET, compression=cfg.COMPRESS_ALG)
-        print(f"Wikipedia responses saved to {str(cfg.WIKI_RESPONSES_PARQUET)}")
+        documents.to_parquet(cfg.WIKI_RESPONSES_PARQUET_PATH, compression=cfg.COMPRESS_ALG)
+        print(f"Wikipedia responses saved to {str(cfg.WIKI_RESPONSES_PARQUET_PATH)}")
 
         return documents
 
@@ -76,13 +76,13 @@ class Scraper:
         return cfg.WIKI_LINK + text
 
     def _load_headers(self):
-        with open(cfg.HEADERS, "r") as f:
+        with open(cfg.HEADERS_PATH, "r") as f:
             return json.load(f)[cfg.HEADERS_SECTION]
 
 
 if __name__ == "__main__":
     # Scraper().scrape_batches()
-    documents: pd.DataFrame = pd.read_parquet(cfg.WIKI_RESPONSES_PARQUET)
+    documents: pd.DataFrame = pd.read_parquet(cfg.WIKI_RESPONSES_PARQUET_PATH)
 
     print(documents.shape)
     print(documents.memory_usage(deep=True))

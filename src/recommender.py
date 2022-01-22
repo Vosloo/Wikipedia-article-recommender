@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import jaccard_score
 from sklearn.metrics.pairwise import cosine_similarity
 
 import config as cfg
@@ -9,10 +8,7 @@ import config as cfg
 
 class Recommender:
     def get_recommendations(
-        self,
-        database: pd.DataFrame,
-        query: pd.DataFrame,
-        no_recommendations: int = cfg.NO_RECOMMENDATIONS,
+        self, database: pd.DataFrame, query: pd.DataFrame, no_recommendations: int,
     ) -> pd.DataFrame:
         """
         Recommends articles from the DB based on the cosine similarity of the query articles
@@ -40,7 +36,7 @@ class Recommender:
     def _save_recommendations(self, recommendations):
         # For redability purposes dropping text column
         recommended = recommendations.drop(cfg.PD_TEXT, axis=1)
-        recommended.to_csv(str(cfg.WIKI_RECOMMENDATIONS_CSV), sep="\t")
+        recommended.to_csv(str(cfg.WIKI_RECOMMENDATIONS_CSV_PATH), sep="\t")
         print(
-            f"Saving wikipedia articles recommendations to {cfg.WIKI_RECOMMENDATIONS_CSV}"
+            f"Saving wikipedia articles recommendations to {cfg.WIKI_RECOMMENDATIONS_CSV_PATH}"
         )
