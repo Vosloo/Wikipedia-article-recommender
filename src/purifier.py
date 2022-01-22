@@ -21,13 +21,15 @@ REGEX_WIKI_STYLING = (r"{.+?}", "")
 REGEX_WIKI_BRACKETS = (r"}+", "")
 REGEX_WIKI_ANNONATIONS = (r"\[\d+?\]", "")
 
-# Multiple new lines and whitespaces
+# Multiple newlines, whitespaces, etc.
 REGEX_SPACES_NEWLINES = (r"\s*\n\s*", "\n")
 REGEX_MULTIP_NEWLINES = (r"\n{3,}", "\n\n")
 REGEX_MULTIP_SPACES = (r"( ){2,}", " ")
 
 # After lemma cleaning
 REGEX_SPECIAL_CHARS = (r"[;`']", "")
+REGEX_SLASH = (r"\/", " ")
+REGEX_LINK = (r"\/{0,2}www\..*? ", "")
 
 
 class Purifier:
@@ -45,6 +47,8 @@ class Purifier:
 
     def purify_after_lemma(self, text):
         text = re.sub(*REGEX_SPECIAL_CHARS, text)
+        text = re.sub(*REGEX_SLASH, text)
+        text = re.sub(*REGEX_LINK, text)
         text = re.sub(*REGEX_MULTIP_SPACES, text)
 
         return "".join(text.strip())
