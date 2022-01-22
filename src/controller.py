@@ -13,51 +13,44 @@ import pandas as pd
 class Controller:
     def __init__(
         self,
-        input_path: Path,
-        data_path: Path,
-        responses_path: Path,
+        to_scrape: int,
+        refresh: bool,
+        reparse: bool,
+        input_path: Path,  # Path to file with user input (urls or titles)
     ) -> None:
         self.input_path = input_path
-        self.data_path = data_path
-        self.responses_path = responses_path
-        self.query_documents: Union[pd.DataFrame, None] = None
-        self.documents: Union[pd.DataFrame, None] = None
+        self.to_scrape = to_scrape
+        self.refresh = refresh
+        self.reparse = reparse
 
         self.normalizer = Normalizer()
         self.purifier = Purifier()
-        self.scraper = Scraper()
+        self.scraper = Scraper(to_scrape)
         self.recommender = Recommender()
 
     def run(self):
-        self._scrape()
-        self._parse_data()
-        self._load_input()
-        self._recommender()
+        if self.to_scrape or self.reparse:
+            scraped = self._scrape()
+            parsed = self._parse_data(scraped)
+            self._save_parsed(parsed)
 
-    def _scrape(self) -> None:
+        if self.input_path is not None:
+            self._recommender()
+
+    def _scrape(self) -> pd.DataFrame:
         """Runs scraper and saves scraped responses to parquet file"""
-        if self.data_path:
-            return
+        if not self.refresh and cfg.WIKI_RESPONSES_PARQUET_PATH.is_file():
+            return self._load_responses()
 
-        if self.responses_path and self.responses_path.is_file():
-            self._load_responses()
-            return
+        return self.scraper.scrape_batches()
 
-        self.documents = self.scraper.scrape_batches()
+    def _parse_data(self, scraped: pd.DataFrame) -> pd.DataFrame:
+        """Loads pandas DataFrame object with raw html texts and parses them inplace"""
+        if not self.refresh and not self.reparse and cfg.WIKI_PARSED_PARQUET_PATH.is_file():
+            return self._load_parsed()
 
-    def _parse_data(self) -> None:
-        """Loads pandas DataFrame object with raw html texts"""
-        # 1. Load DataFrame with raw html texts
-        # 2. Apply general purifying
-        # 3. Apply normalization
-        # 4. Apply purifying after normalization
-        # 5. Save parsed data to parquet file
-
-        if self.data_path and self.data_path.is_file():
-            self._load_parsed()
-            return
-
-        self.documents[cfg.PD_TEXT] = self.documents[cfg.PD_TEXT].apply(
+        print("Parsing articles...")
+        scraped[cfg.PD_TEXT] = scraped[cfg.PD_TEXT].apply(
             lambda x: self.purifier.purify_after_lemma(
                 self.normalizer.normalize(
                     self.purifier.purify_text(self.purifier.process_paragraphs(x))
@@ -65,31 +58,35 @@ class Controller:
             )
         )
 
-        self._save_parsed()
+        return scraped
 
     def _recommender(self) -> None:
-        """Recommends articles based on given query"""
+        """Recommends articles (and saves them to data/ directory) based on given query"""
+        print("Calculating recommendations...")
+        query_documents: pd.DataFrame = self._load_input()
+        db_documents: pd.DataFrame = self._load_parsed()
 
-        print(
-            self.recommender.get_recommendations(self.documents, self.query_documents)
+        recommendations = self.recommender.get_recommendations(
+            db_documents, query_documents, cfg.NO_RECOMMENDATIONS
         )
 
-    def _load_parsed(self) -> None:
+        print("\nRecommendations:")
+        print(recommendations[cfg.PD_URL].values)
+
+    def _load_parsed(self) -> pd.DataFrame:
         """Loads pandas DataFrame object with parsed texts"""
-        self.documents = pd.read_parquet(str(self.data_path))
+        return pd.read_parquet(str(cfg.WIKI_PARSED_PARQUET_PATH))
 
-    def _save_parsed(self) -> None:
+    def _save_parsed(self, parsed: pd.DataFrame) -> None:
         """Saves pandas DataFrame object with parsed texts"""
-        self.documents.to_parquet(
-            str(cfg.WIKI_TEXT_PARQUET), compression=cfg.COMPRESS_ALG
-        )
-        print(f"Wikipedia parsed texts saved to {str(cfg.WIKI_TEXT_PARQUET)}")
+        parsed.to_parquet(str(cfg.WIKI_PARSED_PARQUET_PATH), compression=cfg.COMPRESS_ALG)
+        print(f"Wikipedia parsed texts saved to {str(cfg.WIKI_PARSED_PARQUET_PATH)}")
 
-    def _load_responses(self) -> None:
+    def _load_responses(self) -> pd.DataFrame:
         """Loads pandas DataFrame object with scraped responses"""
-        self.documents = pd.read_parquet(str(self.responses_path))
+        return pd.read_parquet(str(cfg.WIKI_RESPONSES_PARQUET_PATH))
 
-    def _load_input(self) -> None:
+    def _load_input(self) -> pd.DataFrame:
         """Loads user input data"""
 
         with open(str(self.input_path), "r") as f:
@@ -108,4 +105,4 @@ class Controller:
             )
         )
 
-        self.query_documents = query_documents
+        return query_documents

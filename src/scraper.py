@@ -12,8 +12,8 @@ import config as cfg
 
 
 class Scraper:
-    def __init__(self) -> None:
-        self.no_batches = cfg.NO_BATCHES
+    def __init__(self, to_scrape) -> None:
+        self.no_articles = to_scrape
         self.batch_size = cfg.BATCH_SIZE
         self.timeout = cfg.TIMEOUT  # seconds
         self.rand_url = cfg.RAND_WIKI
@@ -39,8 +39,9 @@ class Scraper:
         containing pandas DataFrame object with url, title and text.
         """
         documents = pd.DataFrame(columns=[cfg.PD_URL, cfg.PD_TITLE, cfg.PD_TEXT])
-        for _ in tqdm(range(self.no_batches), desc="Batch"):
-            for _ in tqdm(range(self.batch_size), desc="Request in batch", leave=False):
+        scrapped = 0
+        with tqdm(total=self.no_articles, desc="Scraping progress") as scrap:
+            while scrapped < self.no_articles:
                 r = requests.get(self.rand_url, headers=self._get_random_header())
                 if r.status_code == 200 and r.url not in documents[cfg.PD_URL].values:
                     documents = documents.append(
@@ -51,10 +52,14 @@ class Scraper:
                         },
                         ignore_index=True,
                     )
-            sleep(self.timeout)
+                    scrapped += 1
+                    scrap.update(1)
 
-        documents.to_parquet(cfg.WIKI_RESPONSES_PARQUET, compression=cfg.COMPRESS_ALG)
-        print(f"Wikipedia responses saved to {str(cfg.WIKI_RESPONSES_PARQUET)}")
+                if scrapped % cfg.BATCH_SIZE == 0:
+                    sleep(self.timeout)
+
+        documents.to_parquet(cfg.WIKI_RESPONSES_PARQUET_PATH, compression=cfg.COMPRESS_ALG)
+        print(f"Wikipedia responses saved to {str(cfg.WIKI_RESPONSES_PARQUET_PATH)}")
 
         return documents
 
@@ -71,13 +76,13 @@ class Scraper:
         return cfg.WIKI_LINK + text
 
     def _load_headers(self):
-        with open(cfg.HEADERS, "r") as f:
+        with open(cfg.HEADERS_PATH, "r") as f:
             return json.load(f)[cfg.HEADERS_SECTION]
 
 
 if __name__ == "__main__":
     # Scraper().scrape_batches()
-    documents: pd.DataFrame = pd.read_parquet(cfg.WIKI_RESPONSES_PARQUET)
+    documents: pd.DataFrame = pd.read_parquet(cfg.WIKI_RESPONSES_PARQUET_PATH)
 
     print(documents.shape)
     print(documents.memory_usage(deep=True))
