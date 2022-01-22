@@ -16,12 +16,14 @@ class Controller:
         input_path: Path,
         data_path: Path,
         responses_path: Path,
+        skip_recommendation: bool,
     ) -> None:
         self.input_path = input_path
         self.data_path = data_path
         self.responses_path = responses_path
         self.query_documents: Union[pd.DataFrame, None] = None
         self.documents: Union[pd.DataFrame, None] = None
+        self.skip_recommendation = skip_recommendation
 
         self.normalizer = Normalizer()
         self.purifier = Purifier()
@@ -31,6 +33,9 @@ class Controller:
     def run(self):
         self._scrape()
         self._parse_data()
+        if self.skip_recommendation:
+            print("Scraping and parsing complete. Closing program")
+            return
         self._load_input()
         self._recommender()
 

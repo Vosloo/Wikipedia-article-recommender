@@ -2,9 +2,12 @@ from pathlib import Path
 
 RAND_WIKI = "https://en.wikipedia.org/wiki/Special:Random"
 WIKI_LINK = "https://en.wikipedia.org/wiki/"
+
+NO_ARTICLES = 1000
 BATCH_SIZE = 50
-NO_BATCHES = 20
 TIMEOUT = 1
+# TODO Create timestamp at program start and add it to all generated file
+TIMESTAMP = ""
 
 MIN_DF = 1
 NO_RECOMMENDATIONS = 5
