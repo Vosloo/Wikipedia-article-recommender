@@ -71,7 +71,9 @@ class Controller:
         )
 
         print("\nRecommendations:")
-        print(recommendations[cfg.PD_URL].values)
+        lst_rec = list(map(list, recommendations[[cfg.PD_URL, cfg.PD_SIMILARITY]].values))
+        for url, sim in lst_rec:
+            print(f"With similarity of {sim:.4f} - {url}")
 
     def _load_parsed(self) -> pd.DataFrame:
         """Loads pandas DataFrame object with parsed texts"""

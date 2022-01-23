@@ -13,7 +13,7 @@ REGEX_NUMBER_LARGE = (r"([0-9])(\.*)([A-Z])", r"\1\2 \3")
 REGEX_COMMA = (",", ", ")
 REGEX_ANGLE_BRACKETS = (r"[<>]", " ")
 REGEX_DASHES = (r"[‑–]", "-")
-REGEX_SPECIAL_SPACE = (r"[\t\xa0]", " ")
+REGEX_SPECIAL_SPACE = (r"[\t\xa0\u200b]", " ")
 REGEX_SPECIAL_NEWLINE = (r"[\x03\r]", "\n")
 
 # Wikipedia specifics
@@ -27,7 +27,7 @@ REGEX_MULTIP_NEWLINES = (r"\n{3,}", "\n\n")
 REGEX_MULTIP_SPACES = (r"( ){2,}", " ")
 
 # After lemma cleaning
-REGEX_SPECIAL_CHARS = (r"[;`']", "")
+REGEX_SPECIAL_CHARS = (r"[;`'\[\]”=_∼~%\|^!\+]", "")
 REGEX_SLASH = (r"\/", " ")
 REGEX_LINK = (r"\/{0,2}www\..*? ", "")
 
